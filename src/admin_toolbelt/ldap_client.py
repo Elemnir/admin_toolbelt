@@ -86,7 +86,7 @@ class LdapClient(object):
             ('objectClass', [b'posixAccount', b'shadowAccount', b'account', b'top']),
             ('cn', [username]),
             ('uid', [username]),
-            ('uidNumber', [str(uid)]),
+            ('uidNumber', [bytes(str(uid), 'utf-8')]),
             ('gidNumber', [self.search_group(primary_group)['gidNumber']]),
             ('homeDirectory', [homedir.format(user=username)]),
             ('loginShell', [shell]),
@@ -124,7 +124,7 @@ class LdapClient(object):
         self.conn.add_s(self.get_group_string(groupname), [
             ('objectClass', [b'posixGroup', b'top']),
             ('cn', [groupname]),
-            ('gidNumber', [str(gid)]),
+            ('gidNumber', [bytes(str(gid), 'utf-8')]),
             ('description', [description]),
             ('memberUid', members)
         ])
