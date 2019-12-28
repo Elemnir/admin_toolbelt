@@ -63,38 +63,38 @@ class LdapClient(object):
     def create_user(self, username, uid, fullname, email, password, primary_group, 
             surname=None, homedir='/nfs/user/{user}', shell='/bin/bash'):
         self.conn.add_s(self.get_user_string(username), [
-            ('objectClass', ['inetOrgPerson', 'organizationalPerson', 'person', 
-                'posixAccount', 'shadowAccount', 'account', 'top']),
-            ('cn', [username]),
-            ('sn', [surname if surname else fullname.split()[-1]]),
-            ('uid', [username]),
-            ('uidNumber', [str(uid)]),
+            ('objectClass', [b'inetOrgPerson', b'organizationalPerson', b'person', 
+                b'posixAccount', b'shadowAccount', b'account', b'top']),
+            ('cn', [bytes(username)]),
+            ('sn', [bytes(surname if surname else fullname.split()[-1])]),
+            ('uid', [bytes(username)]),
+            ('uidNumber', [bytes(str(uid))]),
             ('gidNumber', [self.search_group(primary_group)['gidNumber']]),
-            ('homeDirectory', [homedir.format(user=username)]),
-            ('loginShell', [shell]),
-            ('gecos', [fullname]),
-            ('mail', [email]),
-            ('userPassword', [password]),
-            ('shadowLastChange', ['0']),
-            ('shadowMax', ['0']),
-            ('shadowWarning', ['0']),
+            ('homeDirectory', [bytes(homedir.format(user=username))]),
+            ('loginShell', [bytes(shell)]),
+            ('gecos', [bytes(fullname)]),
+            ('mail', [bytes(email)]),
+            ('userPassword', [bytes(password)]),
+            ('shadowLastChange', [b'0']),
+            ('shadowMax', [b'0']),
+            ('shadowWarning', [b'0']),
         ])
 
     def create_service_user(self, username, uid, password, primary_group, 
             homedir='/usr/local/{user}', shell='/sbin/nologin'):
         self.conn.add_s(self.get_user_string(username), [
-            ('objectClass', ['posixAccount', 'shadowAccount', 'account', 'top']),
-            ('cn', [username]),
-            ('uid', [username]),
-            ('uidNumber', [str(uid)]),
+            ('objectClass', [b'posixAccount', b'shadowAccount', b'account', b'top']),
+            ('cn', [bytes(username)]),
+            ('uid', [bytes(username)]),
+            ('uidNumber', [bytes(str(uid))]),
             ('gidNumber', [self.search_group(primary_group)['gidNumber']]),
-            ('homeDirectory', [homedir.format(user=username)]),
-            ('loginShell', [shell]),
-            ('gecos', [fullname]),
-            ('userPassword', [password]),
-            ('shadowLastChange', ['0']),
-            ('shadowMax', ['0']),
-            ('shadowWarning', ['0']),
+            ('homeDirectory', [bytes(homedir.format(user=username))]),
+            ('loginShell', [bytes(shell)]),
+            ('gecos', [bytes(fullname)]),
+            ('userPassword', [bytes(password)]),
+            ('shadowLastChange', [b'0']),
+            ('shadowMax', [b'0']),
+            ('shadowWarning', [b'0']),
         ])
 
     def search_user(self, username):
@@ -122,10 +122,10 @@ class LdapClient(object):
 
     def create_group(self, groupname, gid, members=[], description=''):
         self.conn.add_s(self.get_group_string(groupname), [
-            ('objectClass', ['posixGroup', 'top']),
-            ('cn', [groupname]),
-            ('gidNumber', [str(gid)]),
-            ('description', [description]),
+            ('objectClass', [b'posixGroup', b'top']),
+            ('cn', [bytes(groupname)]),
+            ('gidNumber', [bytes(str(gid))]),
+            ('description', [bytes(description)]),
             ('memberUid', members)
         ])
 
