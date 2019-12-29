@@ -55,10 +55,14 @@ class LdapClient(object):
         self.conn.unbind_s()
 
     def get_user_string(self, username):
-        return '{0}={1},ou={2},{3}'.format(self.username_attr, username, self.user_ou, self.base)
+        return '{0!s}={1!s},ou={2!s},{3!s}'.format(
+            self.username_attr, username, self.user_ou, self.base
+        )
 
     def get_group_string(self, groupname):
-        return 'cn={0},ou={1},{2}'.format(groupname, self.group_ou, self.base)
+        return 'cn={0!s},ou={1!s},{2!s}'.format(
+            groupname, self.group_ou, self.base
+        )
 
     def create_user(self, username, uid, fullname, email, password, primary_group, 
             surname=None, homedir='/nfs/user/{user}', shell='/bin/bash'):
@@ -121,13 +125,13 @@ class LdapClient(object):
         ))
 
     def create_group(self, groupname, gid, members=[], description=''):
-        self.conn.add_s(self.get_group_string(groupname), [
-            ('objectClass', [b'posixGroup', b'top']),
-            ('cn', [groupname]),
-            ('gidNumber', [bytes(str(gid), 'utf-8')]),
-            ('description', [description]),
-            ('memberUid', members)
-        ])
+        self.conn.add_s(self.get_group_string(groupname), self.prepare_modlist({
+            'objectClass': ['posixGroup', 'top'],
+            'cn': groupname,
+            'gidNumber': gid,
+            'description': description,
+            'memberUid': members
+        }))
 
     def search_group(self, groupname):
         return self._search_base(self.get_group_string(groupname))
@@ -154,6 +158,21 @@ class LdapClient(object):
 
     def add_user_to_group(self, username, groupname):
         self.add_group_attr(groupname, 'memberUid', username)
+
+
+    def prepare_attribute(self, attr):
+        if isinstance(attr, bytes):
+            return attr
+        return bytes(str(attr), 'utf-8')
+
+    def prepare_modlist(self, d):
+        rval = []
+        for k, v in d.items():
+            if isinstance(v, list) or isinstance(v, tuple):
+                rval[k] = [prepare_attribute(i) for i in v]
+            else:
+                rval[k] = [prepare_attribute(v)]
+        return rval
 
     @classmethod
     def hash_password(cls, passwd):
