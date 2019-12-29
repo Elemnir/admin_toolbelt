@@ -66,40 +66,39 @@ class LdapClient(object):
 
     def create_user(self, username, uid, fullname, email, password, primary_group, 
             surname=None, homedir='/nfs/user/{user}', shell='/bin/bash'):
-        self.conn.add_s(self.get_user_string(username), [
-            ('objectClass', [b'inetOrgPerson', b'organizationalPerson', b'person', 
-                b'posixAccount', b'shadowAccount', b'account', b'top']),
-            ('cn', [username]),
-            ('sn', [surname if surname else fullname.split()[-1]]),
-            ('uid', [username]),
-            ('uidNumber', [str(uid)]),
-            ('gidNumber', [self.search_group(primary_group)['gidNumber']]),
-            ('homeDirectory', [homedir.format(user=username)]),
-            ('loginShell', [shell]),
-            ('gecos', [fullname]),
-            ('mail', [email]),
-            ('userPassword', [password]),
-            ('shadowLastChange', [b'0']),
-            ('shadowMax', [b'0']),
-            ('shadowWarning', [b'0']),
-        ])
+        self.conn.add_s(self.get_user_string(username), self.prepare_modlist({
+            'objectClass': ['inetOrgPerson', 'organizationalPerson', 'person', 
+                'posixAccount', 'shadowAccount', 'account', 'top'],
+            'cn': username,
+            'sn': surname if surname else fullname.split()[-1],
+            'uid': username,
+            'uidNumber': uid,
+            'gidNumber': self.search_group(primary_group)['gidNumber'],
+            'homeDirectory': homedir.format(user=username),
+            'loginShell': shell,
+            'gecos': fullname,
+            'mail': email,
+            'userPassword': password,
+            'shadowLastChange': 0,
+            'shadowMax': 0,
+            'shadowWarning': 0,
+        }))
 
     def create_service_user(self, username, uid, password, primary_group, 
             homedir='/usr/local/{user}', shell='/sbin/nologin'):
-        self.conn.add_s(self.get_user_string(username), [
-            ('objectClass', [b'posixAccount', b'shadowAccount', b'account', b'top']),
-            ('cn', [username]),
-            ('uid', [username]),
-            ('uidNumber', [bytes(str(uid), 'utf-8')]),
-            ('gidNumber', [self.search_group(primary_group)['gidNumber']]),
-            ('homeDirectory', [homedir.format(user=username)]),
-            ('loginShell', [shell]),
-            ('gecos', [fullname]),
-            ('userPassword', [password]),
-            ('shadowLastChange', [b'0']),
-            ('shadowMax', [b'0']),
-            ('shadowWarning', [b'0']),
-        ])
+        self.conn.add_s(self.get_user_string(username), self.prepare_modlist({
+            'objectClass': ['posixAccount', 'shadowAccount', 'account', 'top'],
+            'cn': username,
+            'uid': username,
+            'uidNumber': uid,
+            'gidNumber': self.search_group(primary_group)['gidNumber'],
+            'homeDirectory': homedir.format(user=username),
+            'loginShell': shell,
+            'userPassword': password,
+            'shadowLastChange': 0,
+            'shadowMax': 0,
+            'shadowWarning': 0,
+        }))
 
     def search_user(self, username):
         return self._search_base(self.get_user_string(username))
