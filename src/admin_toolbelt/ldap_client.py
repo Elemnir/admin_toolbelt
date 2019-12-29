@@ -169,9 +169,9 @@ class LdapClient(object):
         rval = []
         for k, v in d.items():
             if isinstance(v, list) or isinstance(v, tuple):
-                rval[k] = [prepare_attribute(i) for i in v]
+                rval[k] = [self.prepare_attribute(i) for i in v]
             else:
-                rval[k] = [prepare_attribute(v)]
+                rval[k] = [self.prepare_attribute(v)]
         return rval
 
     @classmethod
