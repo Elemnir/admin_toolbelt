@@ -74,7 +74,7 @@ def set_quota_cmd(username, filesystem, fstype='xfs', usage=None, inode=None):
 
 
 @dramatiq.actor
-def create_path(path, owner, group, fstype, mode=0700, copy_files=[], usage_quota=None, inode_quota=None):
+def create_path(path, owner, group, fstype, mode=0o700, copy_files=[], usage_quota=None, inode_quota=None):
     """Creates a directory with the given attributes if it doesn't exist."""
     if not os.path.exists(path):
         logging.debug('%s: Path does not exist, creating...', path)
@@ -115,7 +115,6 @@ class UnusedPeriodPolicy(object):
         )
 
 
-@dramatiq.actor
 def visit_dirs(dirs, policy=UnusedPeriodPolicy(), action=print):
     """Provided a list of directories, ``dirs``, recursively searches for files 
     for which the provided policy returns True, and execute the given action on

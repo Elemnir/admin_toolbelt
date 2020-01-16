@@ -5,7 +5,9 @@
     This module provides a wrapper around the python-ldap library for 
     making certain operations against an LDAP server simpler.
 """
+import base64
 import hashlib
+import os
 
 import ldap
 
@@ -68,7 +70,7 @@ class LdapClient(object):
             surname=None, homedir='/nfs/user/{user}', shell='/bin/bash'):
         self.conn.add_s(self.get_user_string(username), self.prepare_modlist({
             'objectClass': ['inetOrgPerson', 'organizationalPerson', 'person', 
-                'posixAccount', 'shadowAccount', 'account', 'top'],
+                'posixAccount', 'shadowAccount', 'top'],
             'cn': username,
             'sn': surname if surname else fullname.split()[-1],
             'uid': username,
@@ -83,6 +85,7 @@ class LdapClient(object):
             'shadowMax': 0,
             'shadowWarning': 0,
         }))
+        self.add_user_to_group(username, primary_group)
 
     def create_service_user(self, username, uid, password, primary_group, 
             homedir='/usr/local/{user}', shell='/sbin/nologin'):
@@ -99,6 +102,7 @@ class LdapClient(object):
             'shadowMax': 0,
             'shadowWarning': 0,
         }))
+        self.add_user_to_group(username, primary_group)
 
     def search_user(self, username):
         return self._search_base(self.get_user_string(username))
@@ -117,10 +121,10 @@ class LdapClient(object):
     def remove_user_attr(self, username, attr):
         self._modify_base(self.get_user_string(username), ldap.MOD_DELETE, attr, None)
 
-    def next_user_uid(self, filterstr='(objectClass=posixUser)'):
+    def next_user_uid(self, filterstr='(objectClass=posixAccount)'):
         return 1 + max(map(
             lambda r: int(r['uidNumber'][0]), 
-            self.search_groups(filterstr=filterstr, attrs=['uidNumber'])
+            self.search_users(filterstr=filterstr, attrs=['uidNumber'])
         ))
 
     def create_group(self, groupname, gid, members=[], description=''):
@@ -156,7 +160,7 @@ class LdapClient(object):
         ))
 
     def add_user_to_group(self, username, groupname):
-        self.add_group_attr(groupname, 'memberUid', username)
+        self.add_group_attr(groupname, 'memberUid', self.prepare_attribute(username))
 
 
     def prepare_attribute(self, attr):
@@ -175,10 +179,13 @@ class LdapClient(object):
 
     @classmethod
     def hash_password(cls, passwd):
-        h    = hashlib.new('sha1', passwd.encode('utf-8'))
-        salt = os.urandom(4)
+        """Given a string passwd, returns the hash of the string with a random 
+        salt and formatted to be suitable for use as the value of userPassword.
+        """
+        h = hashlib.new('sha1', passwd.encode('utf-8'))
+        salt = os.urandom(16)
         h.update(salt)
-        return "{SSHA}" +  str(encodebytes(h.digest() + salt))
+        return ("{SSHA}" + base64.encodebytes(h.digest() + salt).decode().strip()).encode('utf-8')
 
     def change_password(self, username, passwd):
         self.modify_user_attr(username, 'userPassword', self.hash_password(passwd))
