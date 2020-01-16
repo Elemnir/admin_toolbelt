@@ -73,7 +73,6 @@ def set_quota_cmd(username, filesystem, fstype='xfs', usage=None, inode=None):
         )
 
 
-@dramatiq.actor
 def create_path(path, owner, group, fstype, mode=0o700, copy_files=[], usage_quota=None, inode_quota=None):
     """Creates a directory with the given attributes if it doesn't exist."""
     if not os.path.exists(path):

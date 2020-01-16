@@ -67,7 +67,7 @@ class LdapClient(object):
         )
 
     def create_user(self, username, uid, fullname, email, password, primary_group, 
-            surname=None, homedir='/nfs/user/{user}', shell='/bin/bash'):
+            surname=None, homedir='/nfs/user/{user}', shell='/bin/bash', hash_password=True):
         self.conn.add_s(self.get_user_string(username), self.prepare_modlist({
             'objectClass': ['inetOrgPerson', 'organizationalPerson', 'person', 
                 'posixAccount', 'shadowAccount', 'top'],
@@ -80,7 +80,7 @@ class LdapClient(object):
             'loginShell': shell,
             'gecos': fullname,
             'mail': email,
-            'userPassword': password,
+            'userPassword': self.hash_password(password) if hash_password else password,
             'shadowLastChange': 0,
             'shadowMax': 0,
             'shadowWarning': 0,
@@ -88,7 +88,7 @@ class LdapClient(object):
         self.add_user_to_group(username, primary_group)
 
     def create_service_user(self, username, uid, password, primary_group, 
-            homedir='/usr/local/{user}', shell='/sbin/nologin'):
+            homedir='/usr/local/{user}', shell='/sbin/nologin', hash_password=True):
         self.conn.add_s(self.get_user_string(username), self.prepare_modlist({
             'objectClass': ['posixAccount', 'shadowAccount', 'account', 'top'],
             'cn': username,
@@ -97,7 +97,7 @@ class LdapClient(object):
             'gidNumber': self.search_group(primary_group)['gidNumber'],
             'homeDirectory': homedir.format(user=username),
             'loginShell': shell,
-            'userPassword': password,
+            'userPassword': self.hash_password(password) if hash_password else password,
             'shadowLastChange': 0,
             'shadowMax': 0,
             'shadowWarning': 0,

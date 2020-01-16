@@ -2,13 +2,13 @@
  Changelog
 ===========
 
-Version 0.1.3
+Version 0.2.0
 -------------
 
-- Added support for username remapping via the ``USERNAME_REMAPPER`` option
-  for entries in ``DUO_CONFIG``.
+- Lots of bug fixes and testing for the LdapClient and some restructuring of 
+  the dramatiq components into a separate module.
 
-Version 0.1.2
+Version 0.1.0
 -------------
 
-First public release.
+- First public release.
