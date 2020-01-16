@@ -37,17 +37,23 @@ class LdapClient(object):
 
     def _search_base(self, search_string):
         try:
-            return self.conn.search_s(search_string, ldap.SCOPE_SUBTREE)[0][1]
+            result = self.conn.search_s(search_string, ldap.SCOPE_SUBTREE)[0][1]
+            for k, v in result.items():
+                result[k] = [s.decode() for s in v]
+            return result
         except Exception as e:
             return None
 
     def _search_base_multi(self, base, filterstr='(objectClass=*)', attrs=None):
         try:
-            return [ i[1] for i in self.conn.search_s(
+            result = [ i[1] for i in self.conn.search_s(
                 base, ldap.SCOPE_SUBTREE, filterstr=filterstr, attrlist=attrs
             )]
+            for index, item in enumerate(result):
+                for k, v in item.items():
+                    result[index][k] = [s.decode() for s in v]
+            return result
         except Exception as e:
-            print(e)
             return []
 
     def _modify_base(self, search_string, action, attr, value):
