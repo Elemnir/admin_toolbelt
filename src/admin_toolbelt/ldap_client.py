@@ -168,6 +168,8 @@ class LdapClient(object):
     def add_user_to_group(self, username, groupname):
         self.add_group_attr(groupname, 'memberUid', self.prepare_attribute(username))
 
+    def remove_user_from_group(self, username, groupname):
+        self.remove_group_attr(groupname, 'memberUid', self.prepare_attribute(username))
 
     def prepare_attribute(self, attr):
         if isinstance(attr, bytes):
