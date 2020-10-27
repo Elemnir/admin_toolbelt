@@ -2,6 +2,18 @@
  Changelog
 ===========
 
+Version 0.3.0
+-------------
+
+- Adding ``utils.run_cmd`` to streamline subprocess calls
+
+- Replacing ``storage.get_mount_point`` with ``storage.get_mount_info`` which 
+  elides several bugs and provides more information on the mount point.
+
+- Removing ``fstype`` from the parameters of ``storage.create_path`` because
+  this can be inferred using the new information provided by 
+  ``storage.get_mount_info``.
+ 
 Version 0.2.0
 -------------
 

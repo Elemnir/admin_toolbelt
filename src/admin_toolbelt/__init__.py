@@ -1,4 +1,4 @@
-__version__     = "0.2.0"
+__version__     = "0.3.0"
 
 __title__       = "admin_toolbelt"
 __description__ = "A collection of tools for administering systems."
