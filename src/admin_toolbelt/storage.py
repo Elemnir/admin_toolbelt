@@ -7,15 +7,16 @@
     creating user directories.
 """
 
+import collections
 import datetime
 import os
 import shutil
 import logging
 
-import dramatiq
+from .utils import run_cmd
 
 __all__ = [
-    'get_mount_point',
+    'get_mount_info',
     'get_quota_cmd',
     'set_quota_cmd',
     'create_path',
@@ -24,14 +25,19 @@ __all__ = [
 ]
 
 
-def get_mount_point(path):
-    """Returns the path of the filesystem on which the given path exists."""
+Mount = collections.namedtuple('Mount', 'spec file vfstype mntops freq passno')
+mount_info = [ Mount(*line.split()) for line in open('/proc/mounts').readlines() ]
+
+
+def get_mount_info(path):
+    """Returns the mount info of the filesystem on which the given path exists."""
     path = os.path.realpath(os.path.abspath(path))
     while path != os.path.sep:
-        if os.path.ismount(path):
-            return path
+        for mnt in mount_info:
+            if path == mnt.file:
+                return mnt
         path = os.path.abspath(os.path.join(path, os.pardir))
-    return path
+    raise OSError("Invalid path")
 
 
 def get_quota_cmd(username, filesystem, fstype='xfs'):
@@ -41,7 +47,7 @@ def get_quota_cmd(username, filesystem, fstype='xfs'):
     if fstype == 'lustre':
         return 'lfs quota -q -h -u {0} {1}'.format(username, filesystem)
     if fstype == 'zfs':
-        return 'zfs get userquota@{0} {1}'.format(username, filesystem)
+        return 'zfs get userquota@{0} {1}'.format(username, filesystem.lstrip('/'))
 
 
 def set_quota_cmd(username, filesystem, fstype='xfs', usage=None, inode=None):
@@ -69,32 +75,33 @@ def set_quota_cmd(username, filesystem, fstype='xfs', usage=None, inode=None):
 
     if fstype == 'zfs':
         return 'zfs set userquota@{0}={1} {2}'.format(
-            username, usage if usage else 'none', filesystem
+            username, usage if usage else 'none', filesystem.lstrip('/')
         )
 
 
-def create_path(path, owner, group, fstype, mode=0o700, copy_files=[], usage_quota=None, inode_quota=None):
+def create_path(path, owner, group, mode=0o700, copy_files=[], usage_quota=None, inode_quota=None):
     """Creates a directory with the given attributes if it doesn't exist."""
+    logging.info(('create_path(' + 
+        'path={}, owner={}, group={}, fstype={} mode={}, copy_files={}, usage_quota={}, inode_quota={}' + 
+        ')').format(path, owner, group, fstype, mode, copy_files, usage_quota, inode_quota)
+    )
     if not os.path.exists(path):
-        logging.debug('%s: Path does not exist, creating...', path)
+        logging.info('%s: Path does not exist, creating...', path)
+        mnt = get_mount_info(path)
         os.mkdir(path)
 
         for src, dest in copy_files:
             shutil.copyfile(src, os.path.join(path, dest))
 
-        cmd = 'chown -R {0}:{1} {2}'.format(owner, group, path)
-        logging.debug('\tRunning: %s', cmd)
-        os.system(cmd)
+        run_cmd('chown -R {0}:{1} {2}'.format(owner, group, path))
         os.chmod(path, mode)
         
         if usage_quota or inode_quota:
-            cmd = set_quota_cmd(
-                owner, get_mount_point(path), fstype=fstype, usage=usage_quota, inode=inode_quota
-            )
-            logging.debug('\tRunning: %s', cmd)
-            os.system(cmd)
+            run_cmd(set_quota_cmd(
+                owner, mnt.file, fstype=mnt.vfstype, usage=usage_quota, inode=inode_quota
+            ))
 
-        logging.debug('... done.')
+        logging.info('... done.')
 
 
 class UnusedPeriodPolicy(object):

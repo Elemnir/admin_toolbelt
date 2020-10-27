@@ -6,14 +6,18 @@
     standard library. Includes things like accurately getting the user's
     username and providing an equivalent to ``sort -h``.
 """
+import logging
 import os
 import pwd
 import re
+import shlex
+import subprocess
 
 __all__ = [
     'first_existing',
     'get_username',
     'human_numeric_sort',
+    'run_cmd',
 ]
 
 
@@ -62,3 +66,8 @@ def human_numeric_sort(lines, column=0):
         
     return sorted(lines, key=key_func)
 
+
+def run_cmd(cmd):
+    """Execute string cmd as a subprocess of the current process."""
+    logger.info("Running Shell Command: " + cmd)
+    return subprocess.check_output(shlex.split(cmd), universal_newlines=True)
