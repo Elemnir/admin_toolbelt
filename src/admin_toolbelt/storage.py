@@ -86,8 +86,8 @@ def set_quota_cmd(username, filesystem, fstype='xfs', usage=None, inode=None):
 def create_path(path, owner, group, mode=0o700, copy_files=[], usage_quota=None, inode_quota=None):
     """Creates a directory with the given attributes if it doesn't exist."""
     logging.info(('create_path(' + 
-        'path={}, owner={}, group={}, fstype={} mode={}, copy_files={}, usage_quota={}, inode_quota={}' + 
-        ')').format(path, owner, group, fstype, mode, copy_files, usage_quota, inode_quota)
+        'path={}, owner={}, group={}, mode={}, copy_files={}, usage_quota={}, inode_quota={}' + 
+        ')').format(path, owner, group, mode, copy_files, usage_quota, inode_quota)
     )
     if not os.path.exists(path):
         logging.info('%s: Path does not exist, creating...', path)
