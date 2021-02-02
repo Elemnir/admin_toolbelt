@@ -28,7 +28,7 @@ def send_record(url, token, when, host, service, user, fromhost, method=None):
 def scan_file(path, patterns=['ssh']):
     with open(path) as f:
         for line in f:
-            for label in patterns.items():
+            for label in patterns:
                 m = re.search(PATTERNS[label], line.rstrip())
                 if m: 
                     yield m
