@@ -2,6 +2,14 @@
  Changelog
 ===========
 
+Version 0.4.0
+-------------
+
+- Adding ``contrib`` subpackage for collecting optional components with their
+  own dependencies.
+
+- Adding ``contrib.login_records`` Django App for recording user login history.
+
 Version 0.3.0
 -------------
 
