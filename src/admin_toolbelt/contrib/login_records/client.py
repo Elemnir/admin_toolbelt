@@ -21,7 +21,7 @@ def send_record(url, token, when, host, service, user, fromhost, method=None):
     if method != None: payload['method'] = method
     resp = requests.post(url, data=payload)
     resp.raise_for_status()
-    if r.status_code != 200:
+    if resp.status_code != 200:
         raise RuntimeError('Server responded: {}'.format(r.status_code))
 
 
