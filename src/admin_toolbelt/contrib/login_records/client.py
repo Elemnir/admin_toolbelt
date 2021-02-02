@@ -6,8 +6,8 @@ import requests
 
 PATTERNS = {
     'ssh': ( 
-          r'(?P<when>\w{3}\s+\d+ \d{2}:\d{2}:\d{2}) (?P<host>\S+)'
-        + r'(?P<service>\S+)\[\d+\]: Accepted (?P<method>.+) for (?P<user>.+)' 
+          r'(?P<when>\w{3}\s+\d+ \d{2}:\d{2}:\d{2}) (?P<host>\S+) '
+        + r'(?P<service>\S+)\[\d+\]: Accepted (?P<method>.+) for (?P<user>.+) ' 
         + r'from (?P<from>.+) port \d+ (>P<rem>.*)$'
     ),
 }
