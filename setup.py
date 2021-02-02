@@ -16,6 +16,11 @@ CLASSIFIERS = [
 ]
 INSTALL_REQUIRES = ['dramatiq', 'python-ldap']
 
+EXTRAS_REQUIRE = {
+    'client': ['requests'],
+    'server': ['django'],
+}
+
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 def read(*parts):
@@ -50,4 +55,5 @@ setup(
     include_package_data=True,
     classifiers=CLASSIFIERS,
     install_requires=INSTALL_REQUIRES,
+    extras_require=EXTRAS_REQUIRE,
 )
