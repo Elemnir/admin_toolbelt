@@ -18,7 +18,7 @@ def send_record(url, token, when, host, service, user, fromhost, method=None):
         'token': token, 'when': when, 'host': host, 
         'service': service, 'user': user, 'fromhost': fromhost,
     }
-    if method != None: payload{'method'} = method
+    if method != None: payload['method'] = method
     resp = requests.post(url, data=payload)
     resp.raise_for_status()
     if r.status_code != 200:
