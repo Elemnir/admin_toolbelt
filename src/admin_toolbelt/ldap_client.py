@@ -39,7 +39,7 @@ class LdapClient(object):
         try:
             result = self.conn.search_s(search_string, ldap.SCOPE_SUBTREE)[0][1]
             for k, v in result.items():
-                result[k] = [s.decode() for s in v]
+                result[k] = [s.decode(errors='ignore') for s in v]
             return result
         except Exception as e:
             return None
@@ -51,7 +51,7 @@ class LdapClient(object):
             )]
             for index, item in enumerate(result):
                 for k, v in item.items():
-                    result[index][k] = [s.decode() for s in v]
+                    result[index][k] = [s.decode(errors='ignore') for s in v]
             return result
         except Exception as e:
             return []
@@ -124,8 +124,8 @@ class LdapClient(object):
     def modify_user_attr(self, username, attr, value):
         self._modify_base(self.get_user_string(username), ldap.MOD_REPLACE, attr, value)
 
-    def remove_user_attr(self, username, attr):
-        self._modify_base(self.get_user_string(username), ldap.MOD_DELETE, attr, None)
+    def remove_user_attr(self, username, attr, value=None):
+        self._modify_base(self.get_user_string(username), ldap.MOD_DELETE, attr, value)
 
     def next_user_uid(self, filterstr='(objectClass=posixAccount)'):
         return 1 + max(map(
@@ -156,8 +156,8 @@ class LdapClient(object):
     def modify_group_attr(self, groupname, attr, value):
         self._modify_base(self.get_group_string(groupname), ldap.MOD_REPLACE, attr, value)
 
-    def remove_group_attr(self, groupname, attr):
-        self._modify_base(self.get_group_string(groupname), ldap.MOD_DELETE, attr, None)
+    def remove_group_attr(self, groupname, attr, value=None):
+        self._modify_base(self.get_group_string(groupname), ldap.MOD_DELETE, attr, value)
 
     def next_group_gid(self):
         return 1 + max(map(
@@ -169,9 +169,7 @@ class LdapClient(object):
         self.add_group_attr(groupname, 'memberUid', self.prepare_attribute(username))
 
     def remove_user_from_group(self, username, groupname):
-        self._modify_base(self.get_group_string(groupname), 
-            ldap.MOD_DELETE, 'memberUid', self.prepare_attribute(username)
-        )
+        self.remove_group_attr(groupname, 'memberUid', self.prepare_attribute(username))
 
     def prepare_attribute(self, attr):
         if isinstance(attr, bytes):
