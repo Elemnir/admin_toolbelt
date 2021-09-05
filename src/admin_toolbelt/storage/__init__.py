@@ -13,75 +13,21 @@ import os
 import shutil
 import logging
 
-from .utils import run_cmd
+from ..utils import run_cmd
+
+from .mounts import get_mount_info
+from .quotas import FilesystemQuota, LustreQuota, XfsQuota, ZfsQuota
 
 __all__ = [
+    'FilesystemQuota',
+    'LustreQuota',
+    'XfsQuota',
+    'ZfsQuota',
     'get_mount_info',
-    'get_quota_cmd',
-    'set_quota_cmd',
     'create_path',
     'UnusedPeriodPolicy',
     'visit_dirs'
 ]
-
-
-Mount = collections.namedtuple('Mount', 'spec file vfstype mntops freq passno')
-mount_info = [ Mount(*line.split()) for line in open('/proc/mounts').readlines() ]
-
-
-def get_mount_info(path):
-    """Returns the mount info of the filesystem on which the given path exists."""
-    path = os.path.realpath(os.path.abspath(path))
-    while True:
-        for mnt in mount_info:
-            if path == mnt.file:
-                return mnt
-        next = os.path.abspath(os.path.join(path, os.pardir))
-        if next == path:
-            break
-        path = next
-
-    raise OSError("Invalid path")
-
-
-def get_quota_cmd(username, filesystem, fstype='xfs'):
-    """Returns a shell command for getting a user's quota."""
-    if fstype in ['xfs', 'ext']:
-        return 'quota -u {0}'.format(username)
-    if fstype == 'lustre':
-        return 'lfs quota -q -h -u {0} {1}'.format(username, filesystem)
-    if fstype == 'zfs':
-        return 'zfs get userquota@{0} {1}'.format(username, filesystem.lstrip('/'))
-
-
-def set_quota_cmd(username, filesystem, fstype='xfs', usage=None, inode=None):
-    """Returns a shell command for setting a user's quota."""
-    if fstype == 'ext':
-        return 'setquota -u {0} {1} {1} {2} {2} {3}'.format(
-            username, inode if inode else 0, usage if usage else 0, filesystem
-        )
-
-    if fstype == 'lustre':
-        cmd = 'lfs setquota --user {0}'.format(username)
-        if usage:
-            cmd += ' --block-softlimit {0} --block-hardlimit {0}'.format(usage)
-        if inode:
-            cmd += ' --inode-softlimit {0} --inode-hardlimit {0}'.format(inode)
-        return cmd + ' {0}'.format(filesystem)
-
-    if fstype == 'xfs':
-        cmd = "xfs_quota -x -c 'limit"
-        if usage:
-            cmd += ' bsoft={0} bhard={0}'.format(usage)
-        if inode:
-            cmd += ' isoft={0} ihard={0}'.format(inode)
-        return cmd + " {0}' {1}".format(username, filesystem)
-
-    if fstype == 'zfs':
-        return 'zfs set userquota@{0}={1} {2}'.format(
-            username, usage if usage else 'none', filesystem.lstrip('/')
-        )
-
 
 def create_path(path, owner, group, mode=0o700, copy_files=[], usage_quota=None, inode_quota=None):
     """Creates a directory with the given attributes if it doesn't exist."""
