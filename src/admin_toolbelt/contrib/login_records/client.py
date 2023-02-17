@@ -40,7 +40,14 @@ def scan_and_report(path, url, token, year=None, patterns=['ssh']):
     
     for m in scan_file(path, patterns):
         send_record(
-            url, token, 
-            datetime.datetime.strptime("{} {}".format(year, m.group('when')), '%Y %b %d %H:%M:%S'),
-            m.group('host'), m.group('service'), m.group('user'), m.group('from'), m.group('method')
+            url,
+            token,
+            datetime.datetime.strptime(
+                "{} {}".format(year, m.group('when')), '%Y %b %d %H:%M:%S'
+            ),
+            m.group('host'),
+            m.group('service'),
+            m.group('user'),
+            m.group('from'),
+            m.group('method'),
         )

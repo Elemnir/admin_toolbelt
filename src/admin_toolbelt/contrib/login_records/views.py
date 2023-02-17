@@ -1,4 +1,5 @@
-from django.http                import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http                import (HttpResponse, HttpResponseBadRequest, 
+                                        HttpResponseForbidden)
 from django.utils.decorators    import method_decorator
 from django.utils.timezone      import now
 from django.views               import View
